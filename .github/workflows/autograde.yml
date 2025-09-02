@@ -17,35 +17,55 @@ jobs:
           distribution: temurin
           java-version: '11'
 
+      # Keep running even if some tests fail so we can compute a score
       - name: Build & Test
-        run: mvn -q -B -DskipITs=true test
+        run: mvn -q -B -DskipITs=true -Dmaven.test.failure.ignore=true test
 
-      # Create per-practice scores and overall summary from Surefire XML
-      - name: Export Scores (per practice and overall)
+      # Create per-practice scores, print them, and write a job summary
+      - name: Export & Print Scores
+        if: always()
         run: |
           python3 - << 'PY'
-          import xml.etree.ElementTree as ET, glob, json, os
+          import xml.etree.ElementTree as ET, glob, json, os, sys
           scores = {}
-          total_tests = total_passed = 0
+          total = passed = 0
           for f in glob.glob('**/surefire-reports/*.xml', recursive=True):
               t = ET.parse(f).getroot()
-              cls = t.get('name','unknown').split('.')[-1]
-              tests = int(t.get('tests', 0))
-              fails = int(t.get('failures', 0))
-              errs  = int(t.get('errors', 0))
-              passed = tests - (fails + errs)
-              scores[cls] = {'passed': passed, 'total': tests}
-              total_tests  += tests
-              total_passed += passed
+              name = t.get('name','unknown').split('.')[-1]
+              tests = int(t.get('tests',0))
+              fails = int(t.get('failures',0))
+              errs  = int(t.get('errors',0))
+              ok = tests - (fails + errs)
+              scores[name] = {'passed': ok, 'total': tests}
+              total += tests; passed += ok
+
           os.makedirs('autograde', exist_ok=True)
-          json.dump(
-            {'overall': {'passed': total_passed, 'total': total_tests},
-             'by_class': scores},
-            open('autograde/score.json','w')
-          )
+          with open('autograde/score.json','w') as f:
+              json.dump({'overall': {'passed': passed, 'total': total},
+                         'by_class': scores}, f)
+
+          pct = 0.0 if total == 0 else 100.0 * passed / total
+          lines = []
+          lines.append("## Autograde Summary")
+          lines.append(f"**Overall:** {passed}/{total} ({pct:.1f}%)")
+          lines.append("")
+          lines.append("### By test class")
+          for k,v in sorted(scores.items()):
+              lines.append(f"- **{k}**: {v['passed']}/{v['total']}")
+          out = "\n".join(lines)
+
+          # Print to log
+          print(out)
+
+          # Also write to the GitHub job summary
+          summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+          if summary_path:
+              with open(summary_path, "a") as s:
+                  s.write(out + "\n")
           PY
 
       - name: Upload grade artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: grade
