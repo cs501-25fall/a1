@@ -1,0 +1,52 @@
+name: Autograde
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Build & Test
+        run: mvn -q -B -DskipITs=true test
+
+      # Create per-practice scores and overall summary from Surefire XML
+      - name: Export Scores (per practice and overall)
+        run: |
+          python3 - << 'PY'
+          import xml.etree.ElementTree as ET, glob, json, os
+          scores = {}
+          total_tests = total_passed = 0
+          for f in glob.glob('**/surefire-reports/*.xml', recursive=True):
+              t = ET.parse(f).getroot()
+              cls = t.get('name','unknown').split('.')[-1]
+              tests = int(t.get('tests', 0))
+              fails = int(t.get('failures', 0))
+              errs  = int(t.get('errors', 0))
+              passed = tests - (fails + errs)
+              scores[cls] = {'passed': passed, 'total': tests}
+              total_tests  += tests
+              total_passed += passed
+          os.makedirs('autograde', exist_ok=True)
+          json.dump(
+            {'overall': {'passed': total_passed, 'total': total_tests},
+             'by_class': scores},
+            open('autograde/score.json','w')
+          )
+          PY
+
+      - name: Upload grade artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: grade
+          path: autograde/score.json
