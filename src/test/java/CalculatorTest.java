@@ -20,10 +20,10 @@ public class CalculatorTest {
     System.setIn(new ByteArrayInputStream(input.getBytes()));
     Calculator.main(new String[0]);
 
-    String s = out.toString();
-    assertTrue(s.matches("(?s).*\\+\\s*=\\s*"+(a+b)+".*"),   "Addition missing/incorrect");
-    assertTrue(s.matches("(?s).*\\-\\s*=\\s*"+(a-b)+".*"),   "Subtraction missing/incorrect");
-    assertTrue(s.matches("(?s).*\\*\\s*=\\s*"+(a*b)+".*"),   "Multiplication missing/incorrect");
-    assertTrue(s.matches("(?s).*/\\s*=\\s*"+(a/b)+".*"),     "Division missing/incorrect");
+      String s = out.toString();
+      assertTrue(s.matches("(?s).*\\+.*=\\s*"+(a+b)+".*"), "Addition missing/incorrect");
+      assertTrue(s.matches("(?s).*\\-.*=\\s*"+(a-b)+".*"), "Subtraction missing/incorrect");
+      assertTrue(s.matches("(?s).*\\*.*=\\s*"+(a*b)+".*"), "Multiplication missing/incorrect");
+      assertTrue(s.matches("(?s).*/.*=\\s*"+(a/b)+".*"),   "Division missing/incorrect");
   }
 }

@@ -1,3 +1,4 @@
+[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/8Q5uxeW5)
 # Week 1 Assignment
 
 This assignment has **3 practices** in one repo. Complete all of them.
@@ -17,7 +18,7 @@ Write `HelloVariations.java` that prints **exactly 2 separate lines**.
 Write `Calculator.java` that:
 - Asks the user for **two integers** (use `Scanner`).
 - Prints the results of **addition**, **subtraction**, **multiplication**, and **integer division**.
-- The output should include the operator and the result (e.g., `+ = 47`). The exact labels/spacing can vary.
+- The output should include the operator and the result. The exact labels/spacing can vary (e.g., `12 + 32 = 44` or `12+32=44`).
 
 ---
 
@@ -26,7 +27,6 @@ Write `StudentIntro.java` that:
 - Prompts the user (print prompts) for their **name** (String), **age** (int), and **favorite programming language** (String).
 - Then prints:
   ```
-  ----------------------------------------
   Hello, my name is <name>.
   I am <age> years old.
   My favorite programming language is <lang>.
